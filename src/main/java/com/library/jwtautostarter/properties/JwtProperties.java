@@ -1,6 +1,8 @@
 package com.library.jwtautostarter.properties;
 
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +10,7 @@ import java.util.List;
 /**
  * Configuration properties for JWT authentication bound to the {@code jwt} prefix.
  */
+@Validated
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
 
@@ -16,6 +19,7 @@ public class JwtProperties {
     /**
      * Base64-encoded secret key used to sign JWT tokens. Required.
      */
+    @NotBlank(message = "jwt.secret-key must not be blank")
     private String secretKey;
 
     /**

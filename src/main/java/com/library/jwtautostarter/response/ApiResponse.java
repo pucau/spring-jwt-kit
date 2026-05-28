@@ -3,6 +3,7 @@ package com.library.jwtautostarter.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * Generic wrapper for all API responses, providing a consistent envelope with
@@ -25,7 +26,7 @@ public class ApiResponse<T> {
         this.success = success;
         this.message = message;
         this.data = data;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now(ZoneOffset.UTC);
     }
 
     /**

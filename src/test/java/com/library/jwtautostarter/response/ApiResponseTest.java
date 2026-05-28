@@ -2,7 +2,12 @@ package com.library.jwtautostarter.response;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 
 class ApiResponseTest {
 
@@ -45,8 +50,21 @@ class ApiResponseTest {
 
     @Test
     void timestampIsSetOnCreation() {
+        LocalDateTime before = LocalDateTime.now(ZoneOffset.UTC);
         ApiResponse<String> response = ApiResponse.success("test");
-        assertThat(response.getTimestamp()).isNotNull();
+        LocalDateTime after = LocalDateTime.now(ZoneOffset.UTC);
+
+        assertThat(response.getTimestamp())
+                .isNotNull()
+                .isBetween(before, after);
+    }
+
+    @Test
+    void timestampIsUtc() {
+        ApiResponse<String> response = ApiResponse.success("test");
+
+        assertThat(response.getTimestamp())
+                .isCloseTo(LocalDateTime.now(ZoneOffset.UTC), within(5, ChronoUnit.SECONDS));
     }
 
     @Test

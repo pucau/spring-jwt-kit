@@ -19,10 +19,12 @@ import java.util.function.Function;
 public class JwtService {
 
     private final JwtProperties properties;
+    private final SecretKey signingKey;
 
     public JwtService(JwtProperties properties) {
         Assert.notNull(properties.getSecretKey(), "jwt.secret-key must not be null");
         this.properties = properties;
+        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(properties.getSecretKey()));
     }
 
     /**
@@ -85,7 +87,6 @@ public class JwtService {
     }
 
     private SecretKey signingKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(properties.getSecretKey());
-        return Keys.hmacShaKeyFor(keyBytes);
+        return signingKey;
     }
 }
