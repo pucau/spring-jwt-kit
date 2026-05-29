@@ -2,6 +2,10 @@ package com.library.jwtautostarter.service;
 
 import com.library.jwtautostarter.properties.JwtProperties;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
@@ -101,5 +105,86 @@ class JwtServiceTest {
 
         assertThatThrownBy(() -> jwtService.extractUsername(tamperedToken))
                 .isInstanceOf(Exception.class);
+    }
+
+    @Test
+    void generateTokenEmbeddsIssuerClaimWhenConfigured() {
+        JwtProperties props = new JwtProperties();
+        props.setSecretKey(SECRET_KEY);
+        props.setExpirationMs(EXPIRATION_MS);
+        props.setIssuer("my-app");
+        JwtService serviceWithIssuer = new JwtService(props);
+
+        String token = serviceWithIssuer.generateToken(userDetails);
+
+        String issuer = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY)))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getIssuer();
+
+        assertThat(issuer).isEqualTo("my-app");
+    }
+
+    @Test
+    void issuerRoundtripPassesValidation() {
+        JwtProperties props = new JwtProperties();
+        props.setSecretKey(SECRET_KEY);
+        props.setExpirationMs(EXPIRATION_MS);
+        props.setIssuer("my-app");
+        JwtService serviceWithIssuer = new JwtService(props);
+
+        String token = serviceWithIssuer.generateToken(userDetails);
+
+        assertThat(serviceWithIssuer.isTokenValid(token, userDetails)).isTrue();
+    }
+
+    @Test
+    void issuerMismatchThrowsJwtException() {
+        JwtProperties propsA = new JwtProperties();
+        propsA.setSecretKey(SECRET_KEY);
+        propsA.setExpirationMs(EXPIRATION_MS);
+        propsA.setIssuer("issuer-a");
+        JwtService serviceA = new JwtService(propsA);
+
+        JwtProperties propsB = new JwtProperties();
+        propsB.setSecretKey(SECRET_KEY);
+        propsB.setExpirationMs(EXPIRATION_MS);
+        propsB.setIssuer("issuer-b");
+        JwtService serviceB = new JwtService(propsB);
+
+        String token = serviceA.generateToken(userDetails);
+
+        assertThatThrownBy(() -> serviceB.extractUsername(token))
+                .isInstanceOf(JwtException.class);
+    }
+
+    @Test
+    void missingIssuerClaimFailsWhenIssuerRequired() {
+        String tokenWithoutIssuer = jwtService.generateToken(userDetails);
+
+        JwtProperties propsWithIssuer = new JwtProperties();
+        propsWithIssuer.setSecretKey(SECRET_KEY);
+        propsWithIssuer.setExpirationMs(EXPIRATION_MS);
+        propsWithIssuer.setIssuer("my-app");
+        JwtService serviceWithIssuer = new JwtService(propsWithIssuer);
+
+        assertThatThrownBy(() -> serviceWithIssuer.extractUsername(tokenWithoutIssuer))
+                .isInstanceOf(JwtException.class);
+    }
+
+    @Test
+    void noIssuerConfiguredTokenHasNoIssClaim() {
+        String token = jwtService.generateToken(userDetails);
+
+        String issuer = Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY)))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getIssuer();
+
+        assertThat(issuer).isNull();
     }
 }

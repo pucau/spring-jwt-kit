@@ -32,6 +32,17 @@ public class JwtProperties {
      */
     private List<String> excludedPaths = new ArrayList<>(List.of("/auth/**", "/public/**"));
 
+    /**
+     * Additional ant-style path patterns appended to {@link #excludedPaths}. Lets consuming
+     * apps extend the exclusion list without replacing the defaults.
+     */
+    private List<String> additionalExcludedPaths = new ArrayList<>();
+
+    /**
+     * Optional issuer embedded as the {@code iss} claim and validated on parse.
+     */
+    private String issuer;
+
     public String getSecretKey() {
         return secretKey;
     }
@@ -54,5 +65,27 @@ public class JwtProperties {
 
     public void setExcludedPaths(List<String> excludedPaths) {
         this.excludedPaths = excludedPaths;
+    }
+
+    public List<String> getAdditionalExcludedPaths() {
+        return additionalExcludedPaths;
+    }
+
+    public void setAdditionalExcludedPaths(List<String> additionalExcludedPaths) {
+        this.additionalExcludedPaths = additionalExcludedPaths;
+    }
+
+    public List<String> getMergedExcludedPaths() {
+        List<String> merged = new ArrayList<>(excludedPaths);
+        merged.addAll(additionalExcludedPaths);
+        return merged;
+    }
+
+    public String getIssuer() {
+        return issuer;
+    }
+
+    public void setIssuer(String issuer) {
+        this.issuer = issuer;
     }
 }
