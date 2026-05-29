@@ -63,6 +63,18 @@ public class ApiResponse<T> {
         return new ApiResponse<>(false, message, null);
     }
 
+    /**
+     * Creates an error response with supplemental data (e.g. field-level validation errors).
+     *
+     * @param message the error message
+     * @param data    supplemental error payload
+     * @param <T>     payload type
+     * @return error {@code ApiResponse}
+     */
+    public static <T> ApiResponse<T> error(String message, T data) {
+        return new ApiResponse<>(false, message, data);
+    }
+
     public boolean isSuccess() {
         return success;
     }
