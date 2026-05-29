@@ -37,13 +37,17 @@ public class JwtService {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + properties.getExpirationMs());
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .id(UUID.randomUUID().toString())
                 .subject(userDetails.getUsername())
                 .issuedAt(now)
-                .expiration(expiry)
-                .signWith(signingKey())
-                .compact();
+                .expiration(expiry);
+
+        if (properties.getIssuer() != null) {
+            builder.issuer(properties.getIssuer());
+        }
+
+        return builder.signWith(signingKey()).compact();
     }
 
     /**
@@ -79,11 +83,11 @@ public class JwtService {
     }
 
     private Claims parseClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(signingKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        var parserBuilder = Jwts.parser().verifyWith(signingKey());
+        if (properties.getIssuer() != null) {
+            parserBuilder.requireIssuer(properties.getIssuer());
+        }
+        return parserBuilder.build().parseSignedClaims(token).getPayload();
     }
 
     private SecretKey signingKey() {

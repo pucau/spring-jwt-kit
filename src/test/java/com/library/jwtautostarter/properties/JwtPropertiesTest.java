@@ -74,4 +74,48 @@ class JwtPropertiesTest {
         assertThat(props.getExpirationMs()).isEqualTo(3600000L);
         assertThat(props.getExcludedPaths()).containsExactly("/open/**");
     }
+
+    @Test
+    void additionalExcludedPathsEmptyByDefault() {
+        JwtProperties props = new JwtProperties();
+        assertThat(props.getAdditionalExcludedPaths()).isEmpty();
+    }
+
+    @Test
+    void getMergedExcludedPathsReturnsDefaultsWhenAdditionalIsEmpty() {
+        JwtProperties props = new JwtProperties();
+        assertThat(props.getMergedExcludedPaths()).containsExactlyInAnyOrder("/auth/**", "/public/**");
+    }
+
+    @Test
+    void getMergedExcludedPathsIncludesAdditionalPaths() {
+        JwtProperties props = new JwtProperties();
+        props.setAdditionalExcludedPaths(List.of("/health/**", "/actuator/**"));
+
+        assertThat(props.getMergedExcludedPaths())
+                .containsExactlyInAnyOrder("/auth/**", "/public/**", "/health/**", "/actuator/**");
+    }
+
+    @Test
+    void getMergedExcludedPathsDoesNotMutateExcludedPaths() {
+        JwtProperties props = new JwtProperties();
+        props.setAdditionalExcludedPaths(List.of("/extra/**"));
+
+        props.getMergedExcludedPaths();
+
+        assertThat(props.getExcludedPaths()).containsExactlyInAnyOrder("/auth/**", "/public/**");
+    }
+
+    @Test
+    void issuerIsNullByDefault() {
+        JwtProperties props = new JwtProperties();
+        assertThat(props.getIssuer()).isNull();
+    }
+
+    @Test
+    void issuerSetterAndGetterWork() {
+        JwtProperties props = new JwtProperties();
+        props.setIssuer("my-app");
+        assertThat(props.getIssuer()).isEqualTo("my-app");
+    }
 }

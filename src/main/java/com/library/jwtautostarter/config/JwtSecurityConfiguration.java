@@ -41,7 +41,7 @@ public class JwtSecurityConfiguration {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
 
-        AntPathRequestMatcher[] excludedMatchers = jwtProperties.getExcludedPaths().stream()
+        AntPathRequestMatcher[] excludedMatchers = jwtProperties.getMergedExcludedPaths().stream()
                 .map(AntPathRequestMatcher::new)
                 .toArray(AntPathRequestMatcher[]::new);
 
